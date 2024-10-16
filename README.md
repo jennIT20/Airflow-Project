@@ -1,37 +1,55 @@
+from airflow import DAG
+from datetime import timedelta
+from airflow.operators.bash import BashOperator
+from airflow.utils.dates import days_ago
+from airflow.operators.python import PythonOperator, BranchPythonOperator
+from random import randint
 
-# Airflow-Project
+def best_loan(ti):
+    predictions = ti.xcom_pull(task_ids=['loan_A', 'loan_B', 'loan_C'])
+    best_prediction = max(predictions)
+    if best_prediction > 8:
+        return 'good'
+    return 'bad'
 
-Loan Review Workflow
-Description
+def predict():
+    return randint(1, 10)
 
-This project features an Apache Airflow DAG for evaluating loan applications. It generates random prediction scores for three loans, determining the best option based on these scores. The outcome is classified as "good" (score > 8) or "bad" (score ≤ 8), demonstrating Airflow's automation capabilities in decision-making workflows.
+with DAG(
+    "loan_review",
+    start_date=days_ago(1),
+    schedule_interval=timedelta(days=1),
+) as dag:
 
+    loan_A = PythonOperator(
+        task_id="loan_A",
+        python_callable=predict,
+    )
 
-Features
-Generates random scores for loan applications.
-Evaluates and selects the best loan based on scores.
-Uses Apache Airflow for orchestration of tasks.
-Requirements
-Python 3.x
-Apache Airflow
+    loan_B = PythonOperator(
+        task_id="loan_B",
+        python_callable=predict,
+    )
 
-Required Python packages: airflow, random
+    loan_C = PythonOperator(
+        task_id="loan_C",
+        python_callable=predict,
+    )
 
-Installation
-Clone the repository:
+    choose_best_loan = BranchPythonOperator(
+        task_id="choose_best_loan",
+        python_callable=best_loan,
+    )
 
+    good = BashOperator(
+        task_id="good",
+        bash_command="echo 'good'",
+    )
 
-git clone https://github.com/jennIT20/Airflow-Project.git
-cd Airflow-Project
-Set up a Python environment and install dependencies:
+    bad = BashOperator(
+        task_id="bad",
+        bash_command="echo 'bad'",
+    )
 
-pip install apache-airflow
-Start the Airflow web server:
+    [loan_A, loan_B, loan_C] >> choose_best_loan >> [good, bad]
 
-
-airflow webserver --port 8080
-Start the Airflow scheduler in a new terminal:
-
-
-airflow scheduler
-Access the Airflow UI at http://localhost:8080.
