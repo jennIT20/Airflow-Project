@@ -1,55 +1,25 @@
-from airflow import DAG
-from datetime import timedelta
-from airflow.operators.bash import BashOperator
-from airflow.utils.dates import days_ago
-from airflow.operators.python import PythonOperator, BranchPythonOperator
-from random import randint
+# Airflow Loan Review Project
 
-def best_loan(ti):
-    predictions = ti.xcom_pull(task_ids=['loan_A', 'loan_B', 'loan_C'])
-    best_prediction = max(predictions)
-    if best_prediction > 8:
-        return 'good'
-    return 'bad'
+## Description
+This project implements an Airflow DAG to simulate a loan review process. It randomly generates loan predictions and determines the best loan option based on these predictions. The DAG demonstrates the use of Python and Bash operators, along with branching logic to execute different tasks based on the results.
 
-def predict():
-    return randint(1, 10)
+## Features
+- Randomized loan predictions using Python.
+- Branching logic to determine the best loan option.
+- Integration of Bash commands to output results.
 
-with DAG(
-    "loan_review",
-    start_date=days_ago(1),
-    schedule_interval=timedelta(days=1),
-) as dag:
+## Getting Started
 
-    loan_A = PythonOperator(
-        task_id="loan_A",
-        python_callable=predict,
-    )
+### Prerequisites
+- Docker
+- Docker Compose
+- Apache Airflow
 
-    loan_B = PythonOperator(
-        task_id="loan_B",
-        python_callable=predict,
-    )
+### Installation
 
-    loan_C = PythonOperator(
-        task_id="loan_C",
-        python_callable=predict,
-    )
+1. **Clone the repository:**
 
-    choose_best_loan = BranchPythonOperator(
-        task_id="choose_best_loan",
-        python_callable=best_loan,
-    )
+   git clone https://github.com/yourusername/Airflow-Project.git
+   cd Airflow-Project
 
-    good = BashOperator(
-        task_id="good",
-        bash_command="echo 'good'",
-    )
-
-    bad = BashOperator(
-        task_id="bad",
-        bash_command="echo 'bad'",
-    )
-
-    [loan_A, loan_B, loan_C] >> choose_best_loan >> [good, bad]
 
