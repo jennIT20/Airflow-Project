@@ -14,4 +14,24 @@ Uses Apache Airflow for orchestration of tasks.
 Requirements
 Python 3.x
 Apache Airflow
+
 Required Python packages: airflow, random
+
+Installation
+Clone the repository:
+
+
+git clone https://github.com/jennIT20/Airflow-Project.git
+cd Airflow-Project
+Set up a Python environment and install dependencies:
+
+pip install apache-airflow
+Start the Airflow web server:
+
+
+airflow webserver --port 8080
+Start the Airflow scheduler in a new terminal:
+
+
+airflow scheduler
+Access the Airflow UI at http://localhost:8080.
